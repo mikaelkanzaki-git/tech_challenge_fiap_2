@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 
@@ -9,6 +10,8 @@ class Settings:
     model_dir: Path = project_root / "models"
     model_path: Path = model_dir / "triage_model.joblib"
     metadata_path: Path = model_dir / "triage_model_metadata.json"
+    database_url: str | None = os.getenv("DATABASE_URL")
+    model_version: str = os.getenv("MODEL_VERSION", "local")
 
 
 settings = Settings()

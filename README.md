@@ -33,6 +33,7 @@ DDL scripts are available in `database/ddl`:
 ```text
 database/ddl/000_create_database.sql
 database/ddl/001_create_triage_prediction_requests.sql
+database/ddl/002_create_api_users.sql
 ```
 
 Configure the API connection with:
@@ -41,9 +42,59 @@ Configure the API connection with:
 $env:DATABASE_URL="postgresql://user:password@localhost:5432/tech_challenge_fiap_2"
 ```
 
+For Supabase local development on IPv4 networks, prefer the Session Pooler connection string:
+
+```text
+DATABASE_URL=postgresql://postgres.<PROJECT-REF>:<PASSWORD>@aws-0-<REGION>.pooler.supabase.com:5432/postgres
+```
+
 For local development, use `.env.example` as a template and create a local `.env` file with the real password. The `.env` file is ignored by Git and loaded automatically when the API starts. Restart Uvicorn after changing `.env`.
 
 When `DATABASE_URL` is configured, each `POST /predict/triage` is saved in `triage_prediction_requests`.
+
+## Authentication
+Protected endpoints use OAuth2 Bearer authentication with a JWT returned by `/token` or `/login`.
+
+Create the authentication table and seed user with:
+
+```text
+database/ddl/002_create_api_users.sql
+```
+
+Initial user:
+
+```text
+username: fiap@tech2.com
+password: fiap@Tech_2
+```
+
+Generate a token:
+
+```bash
+curl --location "http://127.0.0.1:8000/token" \
+--header "Content-Type: application/x-www-form-urlencoded" \
+--data-urlencode "username=fiap@tech2.com" \
+--data-urlencode "password=fiap@Tech_2"
+```
+
+Call the protected prediction endpoint:
+
+```bash
+curl --location "http://127.0.0.1:8000/predict/triage" \
+--header "Content-Type: application/json" \
+--header "Authorization: Bearer <ACCESS_TOKEN>" \
+--data '{
+  "age": 79.2,
+  "heart_rate": 147.9,
+  "systolic_blood_pressure": 158.6,
+  "oxygen_saturation": 96.0,
+  "body_temperature": 39.35,
+  "pain_level": 10,
+  "chronic_disease_count": 4,
+  "previous_er_visits": 2,
+  "arrival_mode": "ambulance"
+}'
+```
 
 ## Logs
 The API writes structured logs to the terminal using this pattern:

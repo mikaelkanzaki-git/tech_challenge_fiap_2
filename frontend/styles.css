@@ -109,6 +109,14 @@ input {
   text-transform: uppercase;
 }
 
+.summary-panel > .eyebrow,
+.chat-header .eyebrow {
+  margin-bottom: 0;
+  color: var(--forest);
+  font-size: clamp(1rem, 1.6vw, 1.28rem);
+  letter-spacing: 0.11em;
+}
+
 h1,
 h2 {
   margin: 0;
@@ -207,10 +215,20 @@ h2 {
 }
 
 .ghost-button {
-  color: var(--forest);
-  background: transparent;
-  border: 1px solid var(--line);
+  font-weight: 900;
   box-shadow: none;
+}
+
+.restart-button {
+  color: #0e3c33;
+  background: linear-gradient(135deg, rgba(185, 242, 209, 0.92), rgba(243, 197, 69, 0.72));
+  border: 1px solid rgba(19, 73, 63, 0.22);
+}
+
+.logout-button {
+  color: #9a3b25;
+  background: rgba(255, 128, 93, 0.12);
+  border: 1px solid rgba(255, 128, 93, 0.36);
 }
 
 .chat-panel {

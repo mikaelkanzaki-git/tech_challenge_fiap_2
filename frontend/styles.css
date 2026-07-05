@@ -90,17 +90,14 @@ input {
   padding: clamp(2rem, 5vw, 4rem);
 }
 
-.brand-mark {
-  display: grid;
-  width: 4.5rem;
-  height: 4.5rem;
-  place-items: center;
-  border-radius: 1.3rem;
-  margin-bottom: 1.3rem;
-  color: var(--forest);
-  background: var(--gold);
-  font-weight: 900;
-  letter-spacing: -0.08em;
+.login-brand {
+  max-width: none;
+  color: var(--coral);
+  font-size: clamp(1.45rem, 4vw, 2.4rem);
+  line-height: 1;
+  text-align: center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .eyebrow {

@@ -20,4 +20,6 @@ Set `DATABASE_URL` before starting the API:
 $env:DATABASE_URL="postgresql://user:password@localhost:5432/tech_challenge_fiap_2"
 ```
 
+For the Supabase connection, copy `.env.example` to `.env` and replace `<YOUR-PASSWORD>` locally. Do not commit `.env`.
+
 If `DATABASE_URL` is not set, the API still predicts triage levels but does not persist request records.

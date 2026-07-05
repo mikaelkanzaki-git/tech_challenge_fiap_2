@@ -19,3 +19,6 @@ The table stores:
 
 ## Runtime behavior
 The API enables persistence only when `DATABASE_URL` is configured. This keeps local prediction and tests simple while allowing production-like environments to store request history.
+
+## Secrets
+Use `.env.example` as the public template. Store the real database password only in a local `.env` file or in platform secrets such as GitHub Actions secrets, Supabase environment variables, or deployment provider secrets.

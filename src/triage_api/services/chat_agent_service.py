@@ -24,56 +24,56 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "age",
         "idade",
-        "Qual e a idade do paciente? Informe um valor entre 0 e 120 anos.",
+        "Qual é a idade do paciente? Informe um valor entre 0 e 120 anos.",
         "Informe uma idade entre 0 e 120 anos.",
         0,
         120,
     ),
     FieldPrompt(
         "heart_rate",
-        "frequencia cardiaca",
-        "Qual e a frequencia cardiaca em batimentos por minuto? Informe um valor entre 0 e 250.",
-        "Informe uma frequencia cardiaca entre 0 e 250.",
+        "frequência cardíaca",
+        "Qual é a frequência cardíaca em batimentos por minuto? Informe um valor entre 0 e 250.",
+        "Informe uma frequência cardíaca entre 0 e 250.",
         0,
         250,
     ),
     FieldPrompt(
         "systolic_blood_pressure",
-        "pressao sistolica",
-        "Qual e a pressao arterial sistolica? Informe um valor entre 0 e 300.",
-        "Informe uma pressao sistolica entre 0 e 300.",
+        "pressão sistólica",
+        "Qual é a pressão arterial sistólica? Informe um valor entre 0 e 300.",
+        "Informe uma pressão sistólica entre 0 e 300.",
         0,
         300,
     ),
     FieldPrompt(
         "oxygen_saturation",
-        "saturacao de oxigenio",
-        "Qual e a saturacao de oxigenio? Informe um valor entre 0 e 100.",
-        "Informe uma saturacao entre 0 e 100.",
+        "saturação de oxigênio",
+        "Qual é a saturação de oxigênio? Informe um valor entre 0 e 100.",
+        "Informe uma saturação entre 0 e 100.",
         0,
         100,
     ),
     FieldPrompt(
         "body_temperature",
         "temperatura corporal",
-        "Qual e a temperatura corporal? Informe um valor entre 30 e 45 graus.",
+        "Qual é a temperatura corporal? Informe um valor entre 30 e 45 graus.",
         "Informe uma temperatura entre 30 e 45 graus.",
         30,
         45,
     ),
     FieldPrompt(
         "pain_level",
-        "nivel de dor",
-        "Em uma escala de 0 a 10, qual e o nivel de dor?",
-        "Informe o nivel de dor entre 0 e 10.",
+        "nível de dor",
+        "Em uma escala de 0 a 10, qual é o nível de dor?",
+        "Informe o nível de dor entre 0 e 10.",
         0,
         10,
     ),
     FieldPrompt(
         "chronic_disease_count",
-        "quantidade de doencas cronicas",
-        "Quantas doencas cronicas o paciente possui? Informe um valor entre 0 e 50.",
-        "Informe um numero de doencas cronicas entre 0 e 50.",
+        "quantidade de doenças crônicas",
+        "Quantas doenças crônicas o paciente possui? Informe um valor entre 0 e 50.",
+        "Informe um número de doenças crônicas entre 0 e 50.",
         0,
         50,
     ),
@@ -81,7 +81,7 @@ FIELD_PROMPTS = [
         "previous_er_visits",
         "visitas anteriores ao pronto atendimento",
         "Quantas visitas anteriores ao pronto atendimento o paciente teve? Informe um valor entre 0 e 200.",
-        "Informe um numero de visitas anteriores entre 0 e 200.",
+        "Informe um número de visitas anteriores entre 0 e 200.",
         0,
         200,
     ),
@@ -188,14 +188,14 @@ class TriageChatAgentService:
         missing_fields: list[str],
     ) -> str:
         instructions = (
-            "Voce e um agente de triagem hospitalar. Responda em portugues do Brasil, "
-            "com tom acolhedor e objetivo. Nao diagnostique. Apenas conduza a coleta "
-            "dos dados para a classificacao automatizada de risco."
+            "Você é um agente de triagem hospitalar. Responda em português do Brasil, "
+            "com tom acolhedor e objetivo. Não diagnostique. Apenas conduza a coleta "
+            "dos dados para a classificação automatizada de risco."
         )
         openai_message = self.openai_client.create_message(
             instructions=instructions,
             user_input=(
-                f"Mensagem do usuario: {user_message}\n"
+                f"Mensagem do usuário: {user_message}\n"
                 f"Dados coletados: {patient_data}\n"
                 f"Campos faltantes: {missing_fields}\n"
                 f"Proxima pergunta obrigatoria: {base_message}"
@@ -207,8 +207,8 @@ class TriageChatAgentService:
         risk_label = TRIAGE_LABELS.get(prediction.triage_level, prediction.triage_label)
         return (
             "Consegui calcular a triagem. "
-            f"A categoria estimada e {prediction.triage_label} ({risk_label}). "
-            "Esse resultado apoia a priorizacao, mas nao substitui avaliacao clinica."
+            f"A categoria estimada é {prediction.triage_label} ({risk_label}). "
+            "Esse resultado apoia a priorização, mas não substitui avaliação clínica."
         )
 
 

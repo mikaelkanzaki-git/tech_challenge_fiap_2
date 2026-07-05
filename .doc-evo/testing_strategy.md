@@ -29,3 +29,14 @@ Focus on HTTP behavior:
 
 ## Goal
 Keep the notebook as the learning reference, but move behavior verification into automated tests.
+
+## Coverage
+Use `pytest-cov` to measure how much of the API code is exercised by tests.
+
+```powershell
+.venv\Scripts\python.exe -m pytest --cov=src/triage_api --cov-report=term-missing
+```
+
+The initial project target is `80%` coverage. This is high enough to catch large gaps while still leaving room for pragmatic evolution.
+
+Notebook files are versioned for team reference, but they are not part of the coverage target. Coverage should focus on production code under `src/triage_api`.

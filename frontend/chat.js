@@ -9,6 +9,7 @@ const logoutButton = document.querySelector("#logout-button");
 const quickActions = document.querySelector("#quick-actions");
 
 const initialAgentMessage = "Olá. Vamos coletar os dados para calcular a triagem. Para começar, qual é a idade do paciente? Informe um valor entre 0 e 120 anos.";
+let interviewVersion = 0;
 
 const fieldLabels = {
   age: "Idade",
@@ -85,10 +86,11 @@ logoutButton.addEventListener("click", () => {
 });
 
 restartButton.addEventListener("click", () => {
-  startInterview({});
+  resetInterview();
 });
 
 async function sendMessage(message) {
+  const requestInterviewVersion = interviewVersion;
   appendMessage("user", message);
   chatInput.value = "";
   setFormEnabled(false);
@@ -108,6 +110,10 @@ async function sendMessage(message) {
       }),
     });
     const data = await response.json();
+
+    if (requestInterviewVersion !== interviewVersion) {
+      return;
+    }
 
     if (!response.ok) {
       appendMessage("agent", data.detail || "Não foi possível processar sua mensagem.");
@@ -130,9 +136,17 @@ async function sendMessage(message) {
     setFormEnabled(true);
     chatInput.focus();
   } catch (error) {
+    if (requestInterviewVersion !== interviewVersion) {
+      return;
+    }
+
     appendMessage("agent", "Não foi possível conectar com a API.");
     setFormEnabled(true);
   } finally {
+    if (requestInterviewVersion !== interviewVersion) {
+      return;
+    }
+
     if (chatStatus.textContent !== "finalizado") {
       chatStatus.textContent = "online";
     }
@@ -153,6 +167,12 @@ function readPatientData() {
   } catch (error) {
     return {};
   }
+}
+
+function resetInterview() {
+  interviewVersion += 1;
+  sessionStorage.removeItem("patient_data");
+  startInterview({});
 }
 
 function startInterview(patientData) {

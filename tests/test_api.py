@@ -35,6 +35,11 @@ class FakePredictionRepository:
         self.saved_response = response
 
 
+class FailingPredictionRepository:
+    def save_prediction(self, payload, response) -> None:
+        raise RuntimeError("database unavailable")
+
+
 @pytest.fixture
 def valid_payload() -> dict[str, object]:
     return {
@@ -102,3 +107,17 @@ def test_predict_triage_returns_service_unavailable_when_model_is_missing(
 
     assert response.status_code == 503
     assert response.json()["detail"].startswith("O modelo ainda nao foi treinado")
+
+
+def test_predict_triage_returns_service_unavailable_when_repository_fails(
+    valid_payload: dict[str, object],
+) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = FailingPredictionRepository()
+    client = TestClient(app)
+
+    response = client.post("/predict/triage", json=valid_payload)
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Nao foi possivel registrar a predicao no banco de dados."

@@ -1,24 +1,76 @@
 from fastapi import APIRouter, HTTPException, Request
 
+from triage_api.core.logging import get_logger
 from triage_api.schemas.patient import PatientInput
 from triage_api.schemas.prediction import PredictionResponse
 
 router = APIRouter(prefix="/predict", tags=["prediction"])
+logger = get_logger(__name__)
 
 
 @router.post("/triage", response_model=PredictionResponse)
 def predict_triage(payload: PatientInput, request: Request) -> PredictionResponse:
     model_service = request.app.state.model_service
+    payload_data = payload.model_dump()
+    logger.info(
+        "Requisicao de triagem recebida.",
+        extra={"step": "predict_triage_received", "payload": payload_data},
+    )
     try:
         response = model_service.predict(payload)
     except FileNotFoundError:
+        logger.exception(
+            "Modelo nao encontrado para executar a predicao.",
+            extra={"step": "predict_triage_model_missing", "payload": payload_data},
+        )
         raise HTTPException(
             status_code=503,
             detail="O modelo ainda nao foi treinado. Execute o script de treino antes de consultar a API.",
         ) from None
 
+    response_data = response.model_dump()
+    logger.info(
+        "Predicao calculada com sucesso.",
+        extra={
+            "step": "predict_triage_completed",
+            "payload": payload_data,
+            "server_response": response_data,
+        },
+    )
+
     prediction_repository = request.app.state.prediction_repository
-    if prediction_repository is not None:
-        prediction_repository.save_prediction(payload, response)
+    if prediction_repository is None:
+        logger.info(
+            "Persistencia desabilitada porque DATABASE_URL nao foi configurada.",
+            extra={
+                "step": "prediction_persistence_skipped",
+                "payload": payload_data,
+                "server_response": response_data,
+            },
+        )
+    else:
+        try:
+            prediction_repository.save_prediction(payload, response)
+        except Exception:
+            logger.exception(
+                "Nao foi possivel registrar a predicao no banco de dados.",
+                extra={
+                    "step": "prediction_persistence_failed",
+                    "payload": payload_data,
+                    "server_response": response_data,
+                },
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Nao foi possivel registrar a predicao no banco de dados.",
+            ) from None
+        logger.info(
+            "Registro de triagem persistido com sucesso.",
+            extra={
+                "step": "prediction_persistence_completed",
+                "payload": payload_data,
+                "server_response": response_data,
+            },
+        )
 
     return response

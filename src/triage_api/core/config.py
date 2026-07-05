@@ -22,6 +22,13 @@ def load_environment_file(path: Path = PROJECT_ROOT / ".env") -> None:
             os.environ[key] = value
 
 
+def get_int_environment(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return int(value)
+
+
 load_environment_file()
 
 
@@ -34,6 +41,8 @@ class Settings:
     metadata_path: Path = model_dir / "triage_model_metadata.json"
     database_url: str | None = os.getenv("DATABASE_URL")
     model_version: str = os.getenv("MODEL_VERSION", "local")
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "change-me-local-secret")
+    access_token_expire_minutes: int = get_int_environment("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
 
 
 settings = Settings()

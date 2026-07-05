@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
+from triage_api.api.dependencies.auth import get_current_user
 from triage_api.core.logging import get_logger
+from triage_api.schemas.auth import AuthenticatedUser
 from triage_api.schemas.patient import PatientInput
 from triage_api.schemas.prediction import PredictionResponse
 
@@ -9,12 +11,19 @@ logger = get_logger(__name__)
 
 
 @router.post("/triage", response_model=PredictionResponse)
-def predict_triage(payload: PatientInput, request: Request) -> PredictionResponse:
+def predict_triage(
+    payload: PatientInput,
+    request: Request,
+    current_user: AuthenticatedUser = Depends(get_current_user),
+) -> PredictionResponse:
     model_service = request.app.state.model_service
     payload_data = payload.model_dump()
     logger.info(
         "Requisicao de triagem recebida.",
-        extra={"step": "predict_triage_received", "payload": payload_data},
+        extra={
+            "step": "predict_triage_received",
+            "payload": {**payload_data, "authenticated_user": current_user.email},
+        },
     )
     try:
         response = model_service.predict(payload)

@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 
+from triage_api.api.routes.auth import router as auth_router
 from triage_api.api.routes.predict import router as predict_router
 from triage_api.core.config import settings
 from triage_api.core.logging import get_logger
 from triage_api.repositories.prediction_repository import PostgresPredictionRepository
+from triage_api.repositories.user_repository import PostgresUserRepository
 from triage_api.services.model_service import ModelService
 
 logger = get_logger(__name__)
@@ -21,6 +23,11 @@ def create_app() -> FastAPI:
         if settings.database_url
         else None
     )
+    app.state.user_repository = (
+        PostgresUserRepository(settings.database_url)
+        if settings.database_url
+        else None
+    )
     logger.info(
         "Aplicacao iniciada.",
         extra={
@@ -30,6 +37,7 @@ def create_app() -> FastAPI:
                 "model_ready": settings.model_path.exists(),
                 "database_configured": bool(settings.database_url),
                 "model_version": settings.model_version,
+                "authentication_enabled": app.state.user_repository is not None,
             },
         },
     )
@@ -46,6 +54,17 @@ def create_app() -> FastAPI:
                 "payload": {"model_version": settings.model_version},
             },
         )
+    if app.state.user_repository is None:
+        logger.info(
+            "Autenticacao em banco desabilitada.",
+            extra={"step": "auth_repository_disabled"},
+        )
+    else:
+        logger.info(
+            "Autenticacao em banco habilitada.",
+            extra={"step": "auth_repository_enabled"},
+        )
+    app.include_router(auth_router)
     app.include_router(predict_router)
 
     @app.get("/health")
@@ -54,6 +73,7 @@ def create_app() -> FastAPI:
             "status": "ok",
             "model_ready": settings.model_path.exists(),
             "prediction_persistence_enabled": app.state.prediction_repository is not None,
+            "authentication_enabled": app.state.user_repository is not None,
         }
 
     return app

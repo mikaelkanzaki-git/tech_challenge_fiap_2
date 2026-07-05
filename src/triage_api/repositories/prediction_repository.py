@@ -6,8 +6,11 @@ import psycopg
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from triage_api.core.logging import get_logger
 from triage_api.schemas.patient import PatientInput
 from triage_api.schemas.prediction import PredictionResponse
+
+logger = get_logger(__name__)
 
 
 class PredictionRepository(Protocol):
@@ -60,6 +63,36 @@ class PostgresPredictionRepository:
             "probabilities": Jsonb(response.probabilities),
             "model_version": self.model_version,
         }
-        with psycopg.connect(self.database_url, row_factory=dict_row) as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(query, params)
+        logger.info(
+            "Iniciando persistencia da predicao no PostgreSQL.",
+            extra={
+                "step": "prediction_repository_insert_started",
+                "payload": payload.model_dump(),
+                "server_response": response.model_dump(),
+            },
+        )
+        try:
+            with psycopg.connect(self.database_url, row_factory=dict_row) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(query, params)
+        except Exception as exc:
+            logger.exception(
+                "Falha ao persistir predicao no PostgreSQL.",
+                extra={
+                    "step": "prediction_repository_insert_failed",
+                    "payload": payload.model_dump(),
+                    "server_response": {"error": str(exc)},
+                },
+            )
+            raise
+        logger.info(
+            "Predicao persistida no PostgreSQL.",
+            extra={
+                "step": "prediction_repository_insert_completed",
+                "payload": payload.model_dump(),
+                "server_response": {
+                    "triage_level": response.triage_level,
+                    "triage_label": response.triage_label,
+                },
+            },
+        )

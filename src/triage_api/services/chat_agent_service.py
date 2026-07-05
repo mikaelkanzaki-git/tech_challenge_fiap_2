@@ -24,7 +24,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "age",
         "idade",
-        "Qual e a idade do paciente?",
+        "Qual e a idade do paciente? Informe um valor entre 0 e 120 anos.",
         "Informe uma idade entre 0 e 120 anos.",
         0,
         120,
@@ -32,7 +32,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "heart_rate",
         "frequencia cardiaca",
-        "Qual e a frequencia cardiaca em batimentos por minuto?",
+        "Qual e a frequencia cardiaca em batimentos por minuto? Informe um valor entre 0 e 250.",
         "Informe uma frequencia cardiaca entre 0 e 250.",
         0,
         250,
@@ -40,7 +40,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "systolic_blood_pressure",
         "pressao sistolica",
-        "Qual e a pressao arterial sistolica?",
+        "Qual e a pressao arterial sistolica? Informe um valor entre 0 e 300.",
         "Informe uma pressao sistolica entre 0 e 300.",
         0,
         300,
@@ -48,7 +48,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "oxygen_saturation",
         "saturacao de oxigenio",
-        "Qual e a saturacao de oxigenio?",
+        "Qual e a saturacao de oxigenio? Informe um valor entre 0 e 100.",
         "Informe uma saturacao entre 0 e 100.",
         0,
         100,
@@ -56,7 +56,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "body_temperature",
         "temperatura corporal",
-        "Qual e a temperatura corporal?",
+        "Qual e a temperatura corporal? Informe um valor entre 30 e 45 graus.",
         "Informe uma temperatura entre 30 e 45 graus.",
         30,
         45,
@@ -72,7 +72,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "chronic_disease_count",
         "quantidade de doencas cronicas",
-        "Quantas doencas cronicas o paciente possui?",
+        "Quantas doencas cronicas o paciente possui? Informe um valor entre 0 e 50.",
         "Informe um numero de doencas cronicas entre 0 e 50.",
         0,
         50,
@@ -80,7 +80,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "previous_er_visits",
         "visitas anteriores ao pronto atendimento",
-        "Quantas visitas anteriores ao pronto atendimento o paciente teve?",
+        "Quantas visitas anteriores ao pronto atendimento o paciente teve? Informe um valor entre 0 e 200.",
         "Informe um numero de visitas anteriores entre 0 e 200.",
         0,
         200,

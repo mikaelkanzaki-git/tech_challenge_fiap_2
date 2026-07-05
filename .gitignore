@@ -3,6 +3,11 @@
 venv/
 pyvenv.cfg
 
+# Local environment variables and secrets
+.env
+.env.*
+!.env.example
+
 # Python cache and test artifacts
 __pycache__/
 *.pyc

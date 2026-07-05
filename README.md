@@ -41,6 +41,8 @@ Configure the API connection with:
 $env:DATABASE_URL="postgresql://user:password@localhost:5432/tech_challenge_fiap_2"
 ```
 
+For local development, use `.env.example` as a template and create a local `.env` file with the real password. The `.env` file is ignored by Git.
+
 When `DATABASE_URL` is configured, each `POST /predict/triage` is saved in `triage_prediction_requests`.
 
 ## Tests and coverage

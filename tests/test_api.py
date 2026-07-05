@@ -1,7 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from triage_api.api.dependencies.auth import get_current_user
+from triage_api.core.config import settings
+from triage_api.core.security import create_access_token
 from triage_api.main import create_app
+from triage_api.repositories.user_repository import UserRecord
+from triage_api.schemas.auth import AuthenticatedUser
 from triage_api.schemas.prediction import PredictionResponse
 
 
@@ -40,6 +45,16 @@ class FailingPredictionRepository:
         raise RuntimeError("database unavailable")
 
 
+class FakeUserRepository:
+    def __init__(self, user: UserRecord | None = None):
+        self.user = user
+
+    def get_user_by_email(self, email: str) -> UserRecord | None:
+        if self.user is None or self.user.email != email:
+            return None
+        return self.user
+
+
 @pytest.fixture
 def valid_payload() -> dict[str, object]:
     return {
@@ -53,6 +68,21 @@ def valid_payload() -> dict[str, object]:
         "previous_er_visits": 0,
         "arrival_mode": "walk_in",
     }
+
+
+@pytest.fixture
+def valid_user() -> UserRecord:
+    return UserRecord(
+        email="fiap@tech2.com",
+        password_hash="139469b8f294c7212ca901e29a3dca86b68a0803c5c362e6b6baf3f0711b3e06",
+        password_salt="tech_challenge_fiap_2_fiap_user",
+        password_iterations=260000,
+        is_active=True,
+    )
+
+
+def authenticated_user() -> AuthenticatedUser:
+    return AuthenticatedUser(email="fiap@tech2.com")
 
 
 def test_health_check_returns_status() -> None:
@@ -70,6 +100,7 @@ def test_predict_triage_returns_prediction(valid_payload: dict[str, object]) -> 
     app = create_app()
     app.state.model_service = FakeModelService()
     app.state.prediction_repository = None
+    app.dependency_overrides[get_current_user] = authenticated_user
     client = TestClient(app)
 
     response = client.post("/predict/triage", json=valid_payload)
@@ -86,6 +117,7 @@ def test_predict_triage_saves_prediction_when_repository_is_configured(
     prediction_repository = FakePredictionRepository()
     app.state.model_service = FakeModelService()
     app.state.prediction_repository = prediction_repository
+    app.dependency_overrides[get_current_user] = authenticated_user
     client = TestClient(app)
 
     response = client.post("/predict/triage", json=valid_payload)
@@ -101,6 +133,7 @@ def test_predict_triage_returns_service_unavailable_when_model_is_missing(
     app = create_app()
     app.state.model_service = MissingModelService()
     app.state.prediction_repository = None
+    app.dependency_overrides[get_current_user] = authenticated_user
     client = TestClient(app)
 
     response = client.post("/predict/triage", json=valid_payload)
@@ -115,9 +148,89 @@ def test_predict_triage_returns_service_unavailable_when_repository_fails(
     app = create_app()
     app.state.model_service = FakeModelService()
     app.state.prediction_repository = FailingPredictionRepository()
+    app.dependency_overrides[get_current_user] = authenticated_user
     client = TestClient(app)
 
     response = client.post("/predict/triage", json=valid_payload)
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Nao foi possivel registrar a predicao no banco de dados."
+
+
+def test_predict_triage_requires_bearer_token(valid_payload: dict[str, object]) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    client = TestClient(app)
+
+    response = client.post("/predict/triage", json=valid_payload)
+
+    assert response.status_code == 401
+
+
+def test_token_returns_access_token(valid_user: UserRecord) -> None:
+    app = create_app()
+    app.state.user_repository = FakeUserRepository(valid_user)
+    client = TestClient(app)
+
+    response = client.post(
+        "/token",
+        data={"username": "fiap@tech2.com", "password": "fiap@Tech_2"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["token_type"] == "bearer"
+    assert response.json()["access_token"]
+
+
+def test_predict_triage_accepts_valid_bearer_token(
+    valid_payload: dict[str, object],
+    valid_user: UserRecord,
+) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    app.state.user_repository = FakeUserRepository(valid_user)
+    client = TestClient(app)
+    token = create_access_token(
+        subject="fiap@tech2.com",
+        secret_key=settings.jwt_secret_key,
+        expires_minutes=settings.access_token_expire_minutes,
+    )
+
+    response = client.post(
+        "/predict/triage",
+        json=valid_payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["triage_level"] == 1
+
+
+def test_login_returns_unauthorized_when_password_is_invalid(valid_user: UserRecord) -> None:
+    app = create_app()
+    app.state.user_repository = FakeUserRepository(valid_user)
+    client = TestClient(app)
+
+    response = client.post(
+        "/login",
+        json={"username": "fiap@tech2.com", "password": "wrong"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Usuario ou senha invalidos."
+
+
+def test_token_returns_service_unavailable_when_user_repository_is_missing() -> None:
+    app = create_app()
+    app.state.user_repository = None
+    client = TestClient(app)
+
+    response = client.post(
+        "/token",
+        data={"username": "fiap@tech2.com", "password": "fiap@Tech_2"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Repositorio de usuarios nao configurado."

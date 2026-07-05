@@ -26,7 +26,7 @@ This repository is moving from notebook-driven experimentation to a small API se
 3. Start the API
 
 ## Database
-The PostgreSQL database name is `tech_challenge_fiap_2`.
+The PostgreSQL database name is `tech_challenge_fiap_2`. Use this database name in the final path of `DATABASE_URL`.
 
 DDL scripts are available in `database/ddl`:
 

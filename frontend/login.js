@@ -19,7 +19,7 @@ loginForm.addEventListener("submit", async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
-      loginMessage.textContent = data.detail || "Nao foi possivel autenticar.";
+      loginMessage.textContent = data.detail || "Não foi possível autenticar.";
       return;
     }
 
@@ -27,6 +27,6 @@ loginForm.addEventListener("submit", async (event) => {
     sessionStorage.setItem("patient_data", JSON.stringify({}));
     window.location.href = "/chat.html";
   } catch (error) {
-    loginMessage.textContent = "Nao foi possivel conectar com a API.";
+    loginMessage.textContent = "Não foi possível conectar com a API.";
   }
 });

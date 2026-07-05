@@ -9,12 +9,12 @@ const quickActions = document.querySelector("#quick-actions");
 
 const fieldLabels = {
   age: "Idade",
-  heart_rate: "Frequencia cardiaca",
-  systolic_blood_pressure: "Pressao sistolica",
-  oxygen_saturation: "Saturacao",
+  heart_rate: "Frequência cardíaca",
+  systolic_blood_pressure: "Pressão sistólica",
+  oxygen_saturation: "Saturação",
   body_temperature: "Temperatura",
   pain_level: "Dor",
-  chronic_disease_count: "Doencas cronicas",
+  chronic_disease_count: "Doenças crônicas",
   previous_er_visits: "Visitas anteriores",
   arrival_mode: "Modo de chegada",
 };
@@ -45,7 +45,7 @@ const fieldGuidance = {
     })),
   },
   chronic_disease_count: {
-    text: "Faixa esperada: 0 a 50 doencas cronicas.",
+    text: "Faixa esperada: 0 a 50 doenças crônicas.",
   },
   previous_er_visits: {
     text: "Faixa esperada: 0 a 200 visitas anteriores.",
@@ -55,7 +55,7 @@ const fieldGuidance = {
     buttons: [
       {label: "Andando", value: "andando"},
       {label: "Cadeira de rodas", value: "cadeira de rodas"},
-      {label: "Ambulancia", value: "ambulancia"},
+      {label: "Ambulância", value: "ambulancia"},
     ],
   },
 };
@@ -64,7 +64,7 @@ if (!token) {
   window.location.href = "/";
 }
 
-appendMessage("agent", "Ola. Vamos coletar os dados para calcular a triagem. Para comecar, qual e a idade do paciente? Informe um valor entre 0 e 120 anos.");
+appendMessage("agent", "Olá. Vamos coletar os dados para calcular a triagem. Para começar, qual é a idade do paciente? Informe um valor entre 0 e 120 anos.");
 renderSummary(readPatientData());
 renderQuickActions(["age"]);
 
@@ -105,7 +105,7 @@ async function sendMessage(message) {
     const data = await response.json();
 
     if (!response.ok) {
-      appendMessage("agent", data.detail || "Nao foi possivel processar sua mensagem.");
+      appendMessage("agent", data.detail || "Não foi possível processar sua mensagem.");
       setFormEnabled(true);
       return;
     }
@@ -125,7 +125,7 @@ async function sendMessage(message) {
     setFormEnabled(true);
     chatInput.focus();
   } catch (error) {
-    appendMessage("agent", "Nao foi possivel conectar com a API.");
+    appendMessage("agent", "Não foi possível conectar com a API.");
     setFormEnabled(true);
   } finally {
     if (chatStatus.textContent !== "finalizado") {

@@ -45,6 +45,21 @@ For local development, use `.env.example` as a template and create a local `.env
 
 When `DATABASE_URL` is configured, each `POST /predict/triage` is saved in `triage_prediction_requests`.
 
+## Logs
+The API writes structured logs to the terminal using this pattern:
+
+```text
+[date_time] - [triage_api] - [LEVEL] - [step] - [message] - [payload=...] - [server_response=...]
+```
+
+Important prediction steps:
+
+- `predict_triage_received`: the API received the request payload
+- `predict_triage_completed`: the model returned a prediction
+- `prediction_persistence_skipped`: `DATABASE_URL` was not configured
+- `prediction_persistence_completed`: the prediction was saved successfully
+- `prediction_persistence_failed`: the API could not save the prediction in PostgreSQL
+
 ## Tests and coverage
 Run the automated tests:
 

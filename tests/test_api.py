@@ -103,7 +103,7 @@ def test_root_serves_login_page() -> None:
     response = client.get("/")
 
     assert response.status_code == 200
-    assert "Triagem inteligente" in response.text
+    assert "Tech Challenge FIAP" in response.text
 
 
 def test_predict_triage_returns_prediction(valid_payload: dict[str, object]) -> None:

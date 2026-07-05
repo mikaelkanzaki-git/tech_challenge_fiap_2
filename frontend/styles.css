@@ -200,8 +200,13 @@ h2 {
   font-weight: 900;
 }
 
-.ghost-button {
+.side-actions {
+  display: grid;
+  gap: 0.65rem;
   margin-top: auto;
+}
+
+.ghost-button {
   color: var(--forest);
   background: transparent;
   border: 1px solid var(--line);

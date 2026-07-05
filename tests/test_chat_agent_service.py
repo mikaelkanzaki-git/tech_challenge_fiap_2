@@ -50,7 +50,7 @@ def test_chat_agent_collects_next_field_and_asks_next_question() -> None:
     assert response.patient_data["age"] == 79.0
     assert response.missing_fields[0] == "heart_rate"
     assert response.prediction is None
-    assert "frequencia cardiaca" in response.message
+    assert "frequência cardíaca" in response.message
 
 
 def test_chat_agent_uses_openai_message_when_available() -> None:

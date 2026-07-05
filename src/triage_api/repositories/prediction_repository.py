@@ -81,7 +81,11 @@ class PostgresPredictionRepository:
                 extra={
                     "step": "prediction_repository_insert_failed",
                     "payload": payload.model_dump(),
-                    "server_response": {"error": str(exc)},
+                    "server_response": {
+                        "error_type": exc.__class__.__name__,
+                        "error_message": str(exc),
+                        "sql_state": getattr(exc, "sqlstate", None),
+                    },
                 },
             )
             raise

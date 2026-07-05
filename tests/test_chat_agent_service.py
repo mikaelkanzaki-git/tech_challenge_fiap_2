@@ -80,6 +80,112 @@ def test_chat_agent_rejects_out_of_range_value() -> None:
     assert "age" not in response.patient_data
 
 
+def test_chat_agent_interprets_no_chronic_diseases_as_zero() -> None:
+    service = TriageChatAgentService(FakeOpenAIClient())
+    patient_data = {
+        "age": 79.0,
+        "heart_rate": 147.0,
+        "systolic_blood_pressure": 158.0,
+        "oxygen_saturation": 96.0,
+        "body_temperature": 39.3,
+        "pain_level": 3,
+    }
+
+    response = service.handle_message(
+        message="nenhuma",
+        patient_data=patient_data,
+        model_service=FakeModelService(),
+        prediction_repository=None,
+    )
+
+    assert response.patient_data["chronic_disease_count"] == 0
+    assert response.missing_fields[0] == "previous_er_visits"
+
+
+def test_chat_agent_interprets_no_previous_visits_as_zero() -> None:
+    service = TriageChatAgentService(FakeOpenAIClient())
+    patient_data = {
+        "age": 79.0,
+        "heart_rate": 147.0,
+        "systolic_blood_pressure": 158.0,
+        "oxygen_saturation": 96.0,
+        "body_temperature": 39.3,
+        "pain_level": 3,
+        "chronic_disease_count": 0,
+    }
+
+    response = service.handle_message(
+        message="nunca",
+        patient_data=patient_data,
+        model_service=FakeModelService(),
+        prediction_repository=None,
+    )
+
+    assert response.patient_data["previous_er_visits"] == 0
+    assert response.missing_fields[0] == "arrival_mode"
+
+
+def test_chat_agent_interprets_low_pain_description() -> None:
+    service = TriageChatAgentService(FakeOpenAIClient())
+    patient_data = {
+        "age": 79.0,
+        "heart_rate": 147.0,
+        "systolic_blood_pressure": 158.0,
+        "oxygen_saturation": 96.0,
+        "body_temperature": 39.3,
+    }
+
+    response = service.handle_message(
+        message="estou com pouca dor",
+        patient_data=patient_data,
+        model_service=FakeModelService(),
+        prediction_repository=None,
+    )
+
+    assert response.patient_data["pain_level"] == 3
+    assert response.missing_fields[0] == "chronic_disease_count"
+
+
+def test_chat_agent_interprets_strong_pain_description() -> None:
+    service = TriageChatAgentService(FakeOpenAIClient())
+    patient_data = {
+        "age": 79.0,
+        "heart_rate": 147.0,
+        "systolic_blood_pressure": 158.0,
+        "oxygen_saturation": 96.0,
+        "body_temperature": 39.3,
+    }
+
+    response = service.handle_message(
+        message="dor muito forte",
+        patient_data=patient_data,
+        model_service=FakeModelService(),
+        prediction_repository=None,
+    )
+
+    assert response.patient_data["pain_level"] == 9
+
+
+def test_chat_agent_keeps_explicit_ten_as_pain_level_ten() -> None:
+    service = TriageChatAgentService(FakeOpenAIClient())
+    patient_data = {
+        "age": 79.0,
+        "heart_rate": 147.0,
+        "systolic_blood_pressure": 158.0,
+        "oxygen_saturation": 96.0,
+        "body_temperature": 39.3,
+    }
+
+    response = service.handle_message(
+        message="10",
+        patient_data=patient_data,
+        model_service=FakeModelService(),
+        prediction_repository=None,
+    )
+
+    assert response.patient_data["pain_level"] == 10
+
+
 def test_chat_agent_predicts_when_required_fields_are_complete() -> None:
     service = TriageChatAgentService(FakeOpenAIClient())
     prediction_repository = FakePredictionRepository()

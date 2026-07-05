@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Triagem Inteligente</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="login-card" aria-labelledby="login-title">
+        <div class="brand-mark">TC2</div>
+        <p class="eyebrow">Tech Challenge FIAP</p>
+        <h1 id="login-title">Triagem inteligente com agente conversacional</h1>
+        <p class="lead">
+          Entre para conversar com o agente e coletar os sinais vitais necessarios para a classificacao de risco.
+        </p>
+
+        <form id="login-form" class="form-panel">
+          <label for="username">E-mail</label>
+          <input id="username" name="username" type="email" autocomplete="username" value="fiap@tech2.com" required />
+
+          <label for="password">Senha</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+          <button type="submit">Entrar no atendimento</button>
+          <p id="login-message" class="form-message" role="status"></p>
+        </form>
+      </section>
+    </main>
+    <script src="/login.js"></script>
+  </body>
+</html>

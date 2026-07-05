@@ -99,6 +99,26 @@ ARRIVAL_MODE_KEYWORDS = {
     "ambulance": ["ambulancia", "ambulance", "resgate", "samu"],
 }
 
+ZERO_VALUE_FIELDS = {"pain_level", "chronic_disease_count", "previous_er_visits"}
+ZERO_VALUE_KEYWORDS = [
+    "zero",
+    "nenhum",
+    "nenhuma",
+    "nunca",
+    "sem",
+    "nao",
+    "não",
+    "nada",
+]
+
+PAIN_LEVEL_KEYWORDS = [
+    (10, ["insuportavel", "insuportável", "dor maxima", "dor máxima", "pior dor"]),
+    (9, ["muito forte", "muito intensa", "intensa", "fortissima", "fortíssima"]),
+    (7, ["forte"]),
+    (5, ["moderada", "moderado", "media", "média"]),
+    (3, ["pouca dor", "pouco", "leve", "fraca", "fraco"]),
+]
+
 TRIAGE_LABELS = {
     0: "risco baixo",
     1: "risco moderado",
@@ -163,6 +183,10 @@ class TriageChatAgentService:
         if field_prompt.field_name == "arrival_mode":
             return _extract_arrival_mode(normalized_message)
 
+        semantic_value = _extract_semantic_numeric_value(field_prompt.field_name, normalized_message)
+        if semantic_value is not None:
+            return semantic_value
+
         number = _extract_first_number(normalized_message)
         if number is None:
             return None
@@ -224,6 +248,24 @@ def _extract_arrival_mode(value: str) -> str | None:
         if any(keyword in value for keyword in keywords):
             return arrival_mode
     return None
+
+
+def _extract_semantic_numeric_value(field_name: str, value: str) -> int | None:
+    if field_name in ZERO_VALUE_FIELDS and _has_any_keyword(value, ZERO_VALUE_KEYWORDS):
+        return 0
+
+    if field_name != "pain_level":
+        return None
+
+    for pain_level, keywords in PAIN_LEVEL_KEYWORDS:
+        if _has_any_keyword(value, keywords):
+            return pain_level
+
+    return None
+
+
+def _has_any_keyword(value: str, keywords: list[str]) -> bool:
+    return any(keyword in value for keyword in keywords)
 
 
 def _is_valid_range(value: float, field_prompt: FieldPrompt) -> bool:

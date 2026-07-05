@@ -96,6 +96,16 @@ def test_health_check_returns_status() -> None:
     assert "model_ready" in response.json()
 
 
+def test_root_serves_login_page() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "Triagem inteligente" in response.text
+
+
 def test_predict_triage_returns_prediction(valid_payload: dict[str, object]) -> None:
     app = create_app()
     app.state.model_service = FakeModelService()
@@ -317,3 +327,32 @@ def test_token_returns_service_unavailable_when_user_repository_is_missing() -> 
 
     assert response.status_code == 503
     assert response.json()["detail"] == "Repositorio de usuarios nao configurado."
+
+
+def test_chat_message_requires_bearer_token() -> None:
+    app = create_app()
+    client = TestClient(app)
+
+    response = client.post(
+        "/chat/message",
+        json={"message": "79", "patient_data": {}},
+    )
+
+    assert response.status_code == 401
+
+
+def test_chat_message_collects_patient_data() -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    app.dependency_overrides[get_current_user] = authenticated_user
+    client = TestClient(app)
+
+    response = client.post(
+        "/chat/message",
+        json={"message": "79", "patient_data": {}},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["patient_data"]["age"] == 79.0
+    assert response.json()["missing_fields"][0] == "heart_rate"

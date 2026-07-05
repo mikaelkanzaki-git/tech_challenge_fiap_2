@@ -36,6 +36,7 @@ load_environment_file()
 class Settings:
     project_root: Path = PROJECT_ROOT
     data_path: Path = project_root / "data" / "synthetic_medical_triage.csv"
+    static_dir: Path = project_root / "frontend"
     model_dir: Path = project_root / "models"
     model_path: Path = model_dir / "triage_model.joblib"
     metadata_path: Path = model_dir / "triage_model_metadata.json"
@@ -43,6 +44,8 @@ class Settings:
     model_version: str = os.getenv("MODEL_VERSION", "local")
     jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "change-me-local-secret")
     access_token_expire_minutes: int = get_int_environment("ACCESS_TOKEN_EXPIRE_MINUTES", 60)
+    openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
+    openai_model: str = os.getenv("OPENAI_MODEL", "gpt-5.5")
 
 
 settings = Settings()

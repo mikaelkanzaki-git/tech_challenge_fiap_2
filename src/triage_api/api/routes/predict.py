@@ -51,13 +51,17 @@ def predict_triage(payload: PatientInput, request: Request) -> PredictionRespons
     else:
         try:
             prediction_repository.save_prediction(payload, response)
-        except Exception:
+        except Exception as exc:
             logger.exception(
                 "Nao foi possivel registrar a predicao no banco de dados.",
                 extra={
                     "step": "prediction_persistence_failed",
                     "payload": payload_data,
-                    "server_response": response_data,
+                    "server_response": {
+                        "error_type": exc.__class__.__name__,
+                        "error_message": str(exc),
+                        "prediction": response_data,
+                    },
                 },
             )
             raise HTTPException(

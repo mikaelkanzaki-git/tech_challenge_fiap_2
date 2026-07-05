@@ -168,6 +168,78 @@ def test_predict_triage_requires_bearer_token(valid_payload: dict[str, object]) 
     assert response.status_code == 401
 
 
+def test_predict_triage_rejects_invalid_bearer_token(valid_payload: dict[str, object]) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    client = TestClient(app)
+
+    response = client.post(
+        "/predict/triage",
+        json=valid_payload,
+        headers={"Authorization": "Bearer invalid-token"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Credenciais invalidas."
+
+
+def test_predict_triage_returns_unavailable_when_user_repository_is_missing(
+    valid_payload: dict[str, object],
+) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    app.state.user_repository = None
+    client = TestClient(app)
+    token = create_access_token(
+        subject="fiap@tech2.com",
+        secret_key=settings.jwt_secret_key,
+        expires_minutes=settings.access_token_expire_minutes,
+    )
+
+    response = client.post(
+        "/predict/triage",
+        json=valid_payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Repositorio de usuarios nao configurado."
+
+
+def test_predict_triage_rejects_inactive_user(
+    valid_payload: dict[str, object],
+    valid_user: UserRecord,
+) -> None:
+    app = create_app()
+    app.state.model_service = FakeModelService()
+    app.state.prediction_repository = None
+    app.state.user_repository = FakeUserRepository(
+        UserRecord(
+            email=valid_user.email,
+            password_hash=valid_user.password_hash,
+            password_salt=valid_user.password_salt,
+            password_iterations=valid_user.password_iterations,
+            is_active=False,
+        )
+    )
+    client = TestClient(app)
+    token = create_access_token(
+        subject="fiap@tech2.com",
+        secret_key=settings.jwt_secret_key,
+        expires_minutes=settings.access_token_expire_minutes,
+    )
+
+    response = client.post(
+        "/predict/triage",
+        json=valid_payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
+
+
 def test_token_returns_access_token(valid_user: UserRecord) -> None:
     app = create_app()
     app.state.user_repository = FakeUserRepository(valid_user)
@@ -181,6 +253,17 @@ def test_token_returns_access_token(valid_user: UserRecord) -> None:
     assert response.status_code == 200
     assert response.json()["token_type"] == "bearer"
     assert response.json()["access_token"]
+
+
+def test_token_returns_unprocessable_when_password_is_missing() -> None:
+    app = create_app()
+    app.state.user_repository = FakeUserRepository()
+    client = TestClient(app)
+
+    response = client.post("/token", data={"username": "fiap@tech2.com"})
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Informe usuario e senha para autenticacao."
 
 
 def test_predict_triage_accepts_valid_bearer_token(

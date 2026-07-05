@@ -1,4 +1,8 @@
 import pytest
+import base64
+import hashlib
+import hmac
+import json
 
 from triage_api.core.security import create_access_token, decode_access_token, verify_password
 
@@ -48,3 +52,28 @@ def test_decode_access_token_rejects_expired_token() -> None:
 
     with pytest.raises(ValueError, match="Token expirado"):
         decode_access_token(token, secret_key="test-secret", current_time=2000)
+
+
+def test_decode_access_token_rejects_malformed_token() -> None:
+    with pytest.raises(ValueError, match="Token invalido"):
+        decode_access_token("missing-parts", secret_key="test-secret")
+
+
+def test_decode_access_token_rejects_invalid_algorithm() -> None:
+    header = _base64_url_encode({"alg": "none", "typ": "JWT"})
+    payload = _base64_url_encode({"sub": "fiap@tech2.com", "exp": 9999})
+    signing_input = f"{header}.{payload}"
+    signature = hmac.new(
+        b"test-secret",
+        signing_input.encode("utf-8"),
+        hashlib.sha256,
+    ).digest()
+    token = f"{signing_input}.{base64.urlsafe_b64encode(signature).decode('utf-8').rstrip('=')}"
+
+    with pytest.raises(ValueError, match="Algoritmo"):
+        decode_access_token(token, secret_key="test-secret", current_time=1000)
+
+
+def _base64_url_encode(value: dict[str, object]) -> str:
+    raw_json = json.dumps(value, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw_json).decode("utf-8").rstrip("=")

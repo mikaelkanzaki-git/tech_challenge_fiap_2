@@ -10,19 +10,20 @@
     <main class="chat-shell">
       <aside class="summary-panel">
         <p class="eyebrow">Agente de triagem</p>
-        <h1>Conversa guiada</h1>
         <p>
           Responda uma pergunta por vez. Quando todos os dados estiverem completos, o agente consulta o modelo e retorna a categoria de risco.
         </p>
         <dl id="patient-summary" class="patient-summary"></dl>
-        <button id="logout-button" class="ghost-button" type="button">Sair</button>
+        <div class="side-actions">
+          <button id="restart-button" class="ghost-button" type="button">Nova entrevista</button>
+          <button id="logout-button" class="ghost-button" type="button">Sair</button>
+        </div>
       </aside>
 
-      <section class="chat-panel" aria-labelledby="chat-title">
+      <section class="chat-panel" aria-label="Atendimento">
         <header class="chat-header">
           <div>
             <p class="eyebrow">Atendimento</p>
-            <h2 id="chat-title">Chat com o agente</h2>
           </div>
           <span id="chat-status" class="status-pill">online</span>
         </header>

@@ -4,8 +4,11 @@ const chatForm = document.querySelector("#chat-form");
 const chatInput = document.querySelector("#chat-input");
 const chatStatus = document.querySelector("#chat-status");
 const patientSummary = document.querySelector("#patient-summary");
+const restartButton = document.querySelector("#restart-button");
 const logoutButton = document.querySelector("#logout-button");
 const quickActions = document.querySelector("#quick-actions");
+
+const initialAgentMessage = "Olá. Vamos coletar os dados para calcular a triagem. Para começar, qual é a idade do paciente? Informe um valor entre 0 e 120 anos.";
 
 const fieldLabels = {
   age: "Idade",
@@ -64,9 +67,7 @@ if (!token) {
   window.location.href = "/";
 }
 
-appendMessage("agent", "Olá. Vamos coletar os dados para calcular a triagem. Para começar, qual é a idade do paciente? Informe um valor entre 0 e 120 anos.");
-renderSummary(readPatientData());
-renderQuickActions(["age"]);
+startInterview(readPatientData());
 
 chatForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -81,6 +82,10 @@ chatForm.addEventListener("submit", async (event) => {
 logoutButton.addEventListener("click", () => {
   sessionStorage.clear();
   window.location.href = "/";
+});
+
+restartButton.addEventListener("click", () => {
+  startInterview({});
 });
 
 async function sendMessage(message) {
@@ -148,6 +153,43 @@ function readPatientData() {
   } catch (error) {
     return {};
   }
+}
+
+function startInterview(patientData) {
+  const missingFields = getMissingFields(patientData);
+  sessionStorage.setItem("patient_data", JSON.stringify(patientData));
+  messages.innerHTML = "";
+  chatStatus.textContent = "online";
+  appendMessage("agent", buildOpeningMessage(patientData, missingFields));
+  renderSummary(patientData);
+  renderQuickActions(missingFields);
+  setFormEnabled(missingFields.length > 0);
+  chatInput.value = "";
+  if (missingFields.length > 0) {
+    chatInput.focus();
+  }
+}
+
+function buildOpeningMessage(patientData, missingFields) {
+  if (Object.keys(patientData).length === 0) {
+    return initialAgentMessage;
+  }
+
+  const currentField = missingFields[0];
+
+  if (!currentField) {
+    return "Entrevista concluída. Para iniciar outra avaliação, clique em Nova entrevista.";
+  }
+
+  const guidanceText = fieldGuidance[currentField]?.text || "";
+  return `Vamos continuar a entrevista. Informe ${fieldLabels[currentField].toLowerCase()}. ${guidanceText}`;
+}
+
+function getMissingFields(patientData) {
+  return Object.keys(fieldLabels).filter((fieldName) => {
+    const value = patientData[fieldName];
+    return value === undefined || value === null || value === "";
+  });
 }
 
 function renderSummary(patientData) {

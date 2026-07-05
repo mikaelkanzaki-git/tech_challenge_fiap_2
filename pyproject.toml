@@ -1,0 +1,18 @@
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.coverage.run]
+source = ["src/triage_api"]
+branch = true
+omit = [
+    "notebook/**",
+    "src/triage_api/__init__.py",
+    "src/triage_api/**/__init__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+fail_under = 80

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chat de Triagem</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="chat-shell">
+      <aside class="summary-panel">
+        <p class="eyebrow">Agente de triagem</p>
+        <h1>Conversa guiada</h1>
+        <p>
+          Responda uma pergunta por vez. Quando todos os dados estiverem completos, o agente consulta o modelo e retorna a categoria de risco.
+        </p>
+        <dl id="patient-summary" class="patient-summary"></dl>
+        <button id="logout-button" class="ghost-button" type="button">Sair</button>
+      </aside>
+
+      <section class="chat-panel" aria-labelledby="chat-title">
+        <header class="chat-header">
+          <div>
+            <p class="eyebrow">Atendimento</p>
+            <h2 id="chat-title">Chat com o agente</h2>
+          </div>
+          <span id="chat-status" class="status-pill">online</span>
+        </header>
+
+        <div id="messages" class="messages" aria-live="polite"></div>
+
+        <form id="chat-form" class="chat-form">
+          <input
+            id="chat-input"
+            name="message"
+            type="text"
+            autocomplete="off"
+            placeholder="Digite sua resposta..."
+            required
+          />
+          <button type="submit">Enviar</button>
+        </form>
+      </section>
+    </main>
+    <script src="/chat.js"></script>
+  </body>
+</html>

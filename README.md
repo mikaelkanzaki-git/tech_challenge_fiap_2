@@ -18,7 +18,8 @@ This repository is moving from notebook-driven experimentation to a small API se
 2. Save the trained model artifact under `models/`
 3. Configure the PostgreSQL database when request persistence is needed
 4. Start the API
-5. Send a triage payload to `POST /predict/triage`
+5. Login in the frontend or request a token with `POST /token`
+6. Use the chat screen or send a triage payload to `POST /predict/triage`
 
 ## Local run order
 1. Install dependencies
@@ -51,6 +52,34 @@ DATABASE_URL=postgresql://postgres.<PROJECT-REF>:<PASSWORD>@aws-0-<REGION>.poole
 For local development, use `.env.example` as a template and create a local `.env` file with the real password. The `.env` file is ignored by Git and loaded automatically when the API starts. Restart Uvicorn after changing `.env`.
 
 When `DATABASE_URL` is configured, each `POST /predict/triage` is saved in `triage_prediction_requests`.
+
+## Frontend and Chat Agent
+The API serves a small frontend from the `frontend` directory:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Screens:
+
+- Login screen: authenticates with `/token`
+- Chat screen: sends messages to `/chat/message`
+
+The chat agent collects the required triage fields one by one:
+
+- age
+- heart_rate
+- systolic_blood_pressure
+- oxygen_saturation
+- body_temperature
+- pain_level
+- chronic_disease_count
+- previous_er_visits
+- arrival_mode
+
+When all fields are present, the backend calls the same model service used by `POST /predict/triage` and returns the risk category to the user.
+
+OpenAI integration is optional for local development. If `OPENAI_API_KEY` is configured, the backend uses the OpenAI Responses API to phrase the next chat message more naturally. If it is not configured, the local fallback agent still conducts the conversation.
 
 ## Authentication
 Protected endpoints use OAuth2 Bearer authentication with a JWT returned by `/token` or `/login`.
@@ -93,6 +122,18 @@ curl --location "http://127.0.0.1:8000/predict/triage" \
   "chronic_disease_count": 4,
   "previous_er_visits": 2,
   "arrival_mode": "ambulance"
+}'
+```
+
+Call the protected chat endpoint:
+
+```bash
+curl --location "http://127.0.0.1:8000/chat/message" \
+--header "Content-Type: application/json" \
+--header "Authorization: Bearer <ACCESS_TOKEN>" \
+--data '{
+  "message": "79",
+  "patient_data": {}
 }'
 ```
 

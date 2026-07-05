@@ -1,12 +1,16 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from triage_api.api.routes.auth import router as auth_router
+from triage_api.api.routes.chat import router as chat_router
 from triage_api.api.routes.predict import router as predict_router
 from triage_api.core.config import settings
 from triage_api.core.logging import get_logger
 from triage_api.repositories.prediction_repository import PostgresPredictionRepository
 from triage_api.repositories.user_repository import PostgresUserRepository
+from triage_api.services.chat_agent_service import TriageChatAgentService
 from triage_api.services.model_service import ModelService
+from triage_api.services.openai_client import OpenAIResponseClient
 
 logger = get_logger(__name__)
 
@@ -28,6 +32,12 @@ def create_app() -> FastAPI:
         if settings.database_url
         else None
     )
+    app.state.chat_agent_service = TriageChatAgentService(
+        OpenAIResponseClient(
+            api_key=settings.openai_api_key,
+            model=settings.openai_model,
+        )
+    )
     logger.info(
         "Aplicacao iniciada.",
         extra={
@@ -38,6 +48,7 @@ def create_app() -> FastAPI:
                 "database_configured": bool(settings.database_url),
                 "model_version": settings.model_version,
                 "authentication_enabled": app.state.user_repository is not None,
+                "openai_configured": bool(settings.openai_api_key),
             },
         },
     )
@@ -65,6 +76,7 @@ def create_app() -> FastAPI:
             extra={"step": "auth_repository_enabled"},
         )
     app.include_router(auth_router)
+    app.include_router(chat_router)
     app.include_router(predict_router)
 
     @app.get("/health")
@@ -74,7 +86,10 @@ def create_app() -> FastAPI:
             "model_ready": settings.model_path.exists(),
             "prediction_persistence_enabled": app.state.prediction_repository is not None,
             "authentication_enabled": app.state.user_repository is not None,
+            "chat_agent_enabled": True,
         }
+
+    app.mount("/", StaticFiles(directory=settings.static_dir, html=True), name="static")
 
     return app
 

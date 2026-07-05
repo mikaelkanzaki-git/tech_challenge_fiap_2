@@ -1,7 +1,7 @@
 from pathlib import Path
-from types import SimpleNamespace
 
 import numpy as np
+import pytest
 
 from triage_api.schemas.patient import PatientInput
 from triage_api.services.model_service import ModelService
@@ -39,3 +39,10 @@ def test_model_service_predicts_response() -> None:
     assert response.triage_level == 2
     assert response.triage_label == "level_2"
     assert response.probabilities["level_2"] == 0.5
+
+
+def test_model_service_raises_when_model_file_is_missing(tmp_path: Path) -> None:
+    service = ModelService(tmp_path / "missing.joblib")
+
+    with pytest.raises(FileNotFoundError):
+        service.load_model()

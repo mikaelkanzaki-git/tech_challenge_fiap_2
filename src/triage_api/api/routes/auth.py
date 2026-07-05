@@ -81,7 +81,7 @@ async def _read_token_request(request: Request) -> TokenRequest:
         return TokenRequest.model_validate(payload)
     except (ValidationError, UnicodeDecodeError, ValueError):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="Informe usuario e senha para autenticacao.",
         ) from None
 

@@ -1,0 +1,13 @@
+.agents/
+.doc-evo/
+.pytest_cache/
+.venv/
+venv/
+__pycache__/
+htmlcov/
+.coverage
+
+algoritmo_genetico.ipynb
+data/
+database/
+tests/

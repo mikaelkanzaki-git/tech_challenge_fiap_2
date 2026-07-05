@@ -25,3 +25,5 @@ dist/
 models/*.joblib
 models/*.pkl
 models/*.json
+!models/triage_model.joblib
+!models/triage_model_metadata.json

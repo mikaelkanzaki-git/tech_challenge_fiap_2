@@ -210,7 +210,7 @@ h2 {
 
 .chat-panel {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto;
   gap: 1rem;
   min-height: 0;
   overflow: hidden;
@@ -260,6 +260,58 @@ h2 {
   align-self: flex-end;
   color: #fff;
   background: var(--forest);
+}
+
+.quick-actions {
+  display: grid;
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+.quick-actions:empty {
+  display: none;
+}
+
+.quick-actions-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.pain-scale,
+.choice-list {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding-bottom: 0.2rem;
+  overscroll-behavior-x: contain;
+}
+
+.scale-button,
+.choice-button {
+  min-width: 2.55rem;
+  min-height: 2.55rem;
+  padding: 0.55rem 0.8rem;
+  box-shadow: none;
+}
+
+.scale-button {
+  color: #16211e;
+  background:
+    linear-gradient(
+      135deg,
+      hsl(calc(125 - (var(--scale-ratio) * 125)) 82% 42%),
+      hsl(calc(125 - (var(--scale-ratio) * 125)) 88% 58%)
+    );
+  font-weight: 950;
+}
+
+.choice-button {
+  color: var(--forest);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  white-space: nowrap;
 }
 
 .chat-form {

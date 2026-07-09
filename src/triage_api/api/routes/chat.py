@@ -28,6 +28,7 @@ def create_chat_message(
     chat_agent_service = request.app.state.chat_agent_service
     model_service = request.app.state.model_service
     prediction_repository = request.app.state.prediction_repository
+    interpretation_service = request.app.state.interpretation_service
 
     try:
         response = chat_agent_service.handle_message(
@@ -35,10 +36,11 @@ def create_chat_message(
             patient_data=payload.patient_data,
             model_service=model_service,
             prediction_repository=prediction_repository,
+            interpretation_service=interpretation_service,
         )
     except Exception as exc:
         logger.exception(
-            "Nao foi possivel processar a conversa de triagem.",
+            "Não foi possível processar a conversa de triagem.",
             extra={
                 "step": "chat_message_failed",
                 "payload": {"authenticated_user": current_user.email},
@@ -50,7 +52,7 @@ def create_chat_message(
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Nao foi possivel processar a conversa de triagem.",
+            detail="Não foi possível processar a conversa de triagem.",
         ) from None
 
     logger.info(

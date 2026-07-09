@@ -88,7 +88,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "arrival_mode",
         "modo de chegada",
-        "Como o paciente chegou: andando, cadeira de rodas ou ambulancia?",
+        "Como o paciente chegou: andando, cadeira de rodas ou ambulância?",
         "Informe o modo de chegada: andando, cadeira de rodas ou ambulancia.",
     ),
 ]
@@ -123,7 +123,7 @@ TRIAGE_LABELS = {
     0: "risco baixo",
     1: "risco moderado",
     2: "risco alto",
-    3: "risco critico",
+    3: "risco crítico",
 }
 
 
@@ -137,6 +137,7 @@ class TriageChatAgentService:
         patient_data: dict[str, Any],
         model_service,
         prediction_repository,
+        interpretation_service=None,
     ) -> ChatMessageResponse:
         updated_data = self._collect_patient_data(message, dict(patient_data))
         missing_fields = self._missing_fields(updated_data)
@@ -157,6 +158,8 @@ class TriageChatAgentService:
 
         patient_input = PatientInput.model_validate(updated_data)
         prediction = model_service.predict(patient_input)
+        if interpretation_service is not None:
+            prediction = interpretation_service.interpret(patient_input, prediction)
         if prediction_repository is not None:
             prediction_repository.save_prediction(patient_input, prediction)
 
@@ -168,7 +171,9 @@ class TriageChatAgentService:
             prediction=prediction,
         )
 
-    def _collect_patient_data(self, message: str, patient_data: dict[str, Any]) -> dict[str, Any]:
+    def _collect_patient_data(
+        self, message: str, patient_data: dict[str, Any]
+    ) -> dict[str, Any]:
         normalized_message = _normalize_text(message)
         for field_prompt in FIELD_PROMPTS:
             if field_prompt.field_name in patient_data:
@@ -179,11 +184,15 @@ class TriageChatAgentService:
                 break
         return patient_data
 
-    def _extract_field_value(self, field_prompt: FieldPrompt, normalized_message: str) -> Any | None:
+    def _extract_field_value(
+        self, field_prompt: FieldPrompt, normalized_message: str
+    ) -> Any | None:
         if field_prompt.field_name == "arrival_mode":
             return _extract_arrival_mode(normalized_message)
 
-        semantic_value = _extract_semantic_numeric_value(field_prompt.field_name, normalized_message)
+        semantic_value = _extract_semantic_numeric_value(
+            field_prompt.field_name, normalized_message
+        )
         if semantic_value is not None:
             return semantic_value
 
@@ -194,12 +203,20 @@ class TriageChatAgentService:
         if not _is_valid_range(number, field_prompt):
             return None
 
-        if field_prompt.field_name in {"pain_level", "chronic_disease_count", "previous_er_visits"}:
+        if field_prompt.field_name in {
+            "pain_level",
+            "chronic_disease_count",
+            "previous_er_visits",
+        }:
             return int(number)
         return float(number)
 
     def _missing_fields(self, patient_data: dict[str, Any]) -> list[str]:
-        return [field.field_name for field in FIELD_PROMPTS if field.field_name not in patient_data]
+        return [
+            field.field_name
+            for field in FIELD_PROMPTS
+            if field.field_name not in patient_data
+        ]
 
     def _prompt_for_field(self, field_name: str) -> FieldPrompt:
         return next(field for field in FIELD_PROMPTS if field.field_name == field_name)
@@ -222,13 +239,20 @@ class TriageChatAgentService:
                 f"Mensagem do usuário: {user_message}\n"
                 f"Dados coletados: {patient_data}\n"
                 f"Campos faltantes: {missing_fields}\n"
-                f"Proxima pergunta obrigatoria: {base_message}"
+                f"Proxima pergunta obrigatória: {base_message}"
             ),
         )
         return openai_message or base_message
 
     def _format_prediction_message(self, prediction: PredictionResponse) -> str:
         risk_label = TRIAGE_LABELS.get(prediction.triage_level, prediction.triage_label)
+        if prediction.interpretation:
+            return (
+                "Consegui calcular a triagem. "
+                f"A categoria estimada e {prediction.triage_label} ({risk_label}). "
+                "Esse resultado apoia a priorizacao, mas nao substitui avaliacao clinica. "
+                f"Interpretacao da LLM: {prediction.interpretation}"
+            )
         return (
             "Consegui calcular a triagem. "
             f"A categoria estimada é {prediction.triage_label} ({risk_label}). "

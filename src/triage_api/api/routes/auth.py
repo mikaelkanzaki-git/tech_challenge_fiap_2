@@ -26,12 +26,12 @@ async def create_token(request: Request) -> TokenResponse:
     user_repository = request.app.state.user_repository
     if user_repository is None:
         logger.error(
-            "Repositorio de usuarios nao configurado.",
+            "Repositório de usuários não configurado.",
             extra={"step": "auth_repository_missing", "payload": {"username": token_request.username}},
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Repositorio de usuarios nao configurado.",
+            detail="Repositório de usuários não configurado.",
         )
 
     user = user_repository.get_user_by_email(token_request.username)
@@ -47,7 +47,7 @@ async def create_token(request: Request) -> TokenResponse:
         )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario ou senha invalidos.",
+            detail="Usuário ou senha inválidos.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -82,7 +82,7 @@ async def _read_token_request(request: Request) -> TokenRequest:
     except (ValidationError, UnicodeDecodeError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail="Informe usuario e senha para autenticacao.",
+            detail="Informe usuário e senha para autenticação.",
         ) from None
 
 

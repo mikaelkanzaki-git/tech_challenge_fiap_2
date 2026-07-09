@@ -29,12 +29,30 @@ def predict_triage(
         response = model_service.predict(payload)
     except FileNotFoundError:
         logger.exception(
-            "Modelo nao encontrado para executar a predicao.",
+            "Modelo não encontrado para executar a predição.",
             extra={"step": "predict_triage_model_missing", "payload": payload_data},
         )
         raise HTTPException(
             status_code=503,
-            detail="O modelo ainda nao foi treinado. Execute o script de treino antes de consultar a API.",
+            detail="O modelo ainda não foi treinado. Execute o script de treino antes de consultar a API.",
+        ) from None
+    try:
+        response = request.app.state.interpretation_service.interpret(payload, response)
+    except Exception as exc:
+        logger.exception(
+            "Nao foi possivel gerar a interpretacao da triagem com LLM.",
+            extra={
+                "step": "predict_triage_interpretation_failed",
+                "payload": payload_data,
+                "server_response": {
+                    "error_type": exc.__class__.__name__,
+                    "error_message": str(exc),
+                },
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Nao foi possivel gerar a interpretacao da triagem com LLM.",
         ) from None
 
     response_data = response.model_dump()
@@ -62,7 +80,7 @@ def predict_triage(
             prediction_repository.save_prediction(payload, response)
         except Exception as exc:
             logger.exception(
-                "Nao foi possivel registrar a predicao no banco de dados.",
+                "Não foi possível registrar a predição no banco de dados.",
                 extra={
                     "step": "prediction_persistence_failed",
                     "payload": payload_data,
@@ -75,7 +93,7 @@ def predict_triage(
             )
             raise HTTPException(
                 status_code=503,
-                detail="Nao foi possivel registrar a predicao no banco de dados.",
+                detail="Não foi possível registrar a predição no banco de dados.",
             ) from None
         logger.info(
             "Registro de triagem persistido com sucesso.",

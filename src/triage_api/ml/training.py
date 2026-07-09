@@ -32,9 +32,23 @@ class TrainingResult:
     metadata_path: Path
     metrics: dict[str, float]
     model_params: dict[str, Any]
+    model_params_source: str
 
 
-def build_model(model_params: dict[str, Any], random_state: int) -> RandomForestClassifier:
+def load_model_params(params_path: Path) -> dict[str, Any] | None:
+    if not params_path.exists():
+        return None
+
+    raw_params = json.loads(params_path.read_text(encoding="utf-8"))
+    if not isinstance(raw_params, dict):
+        raise ValueError("Optimized model params file must contain a JSON object.")
+
+    return {**DEFAULT_MODEL_PARAMS, **raw_params}
+
+
+def build_model(
+    model_params: dict[str, Any], random_state: int
+) -> RandomForestClassifier:
     return RandomForestClassifier(
         n_estimators=int(model_params["n_estimators"]),
         max_depth=int(model_params["max_depth"]),
@@ -57,18 +71,30 @@ def fit_model(
 ) -> RandomForestClassifier:
     params = DEFAULT_MODEL_PARAMS if model_params is None else model_params
     model = build_model(params, random_state=random_state)
-    resampled_features, resampled_target = SMOTE(random_state=random_state).fit_resample(features, target)
+    resampled_features, resampled_target = SMOTE(
+        random_state=random_state
+    ).fit_resample(features, target)
     model.fit(resampled_features, resampled_target)
     return model
 
 
-def evaluate_model(model: RandomForestClassifier, features: pd.DataFrame, target: pd.Series) -> dict[str, float]:
+def evaluate_model(
+    model: RandomForestClassifier, features: pd.DataFrame, target: pd.Series
+) -> dict[str, float]:
     predictions = model.predict(features)
     return {
         "accuracy": float(accuracy_score(target, predictions)),
         "macro_f1": float(f1_score(target, predictions, average="macro")),
-        "recall_2": float(recall_score(target, predictions, labels=[2], average="macro", zero_division=0)),
-        "recall_3": float(recall_score(target, predictions, labels=[3], average="macro", zero_division=0)),
+        "recall_2": float(
+            recall_score(
+                target, predictions, labels=[2], average="macro", zero_division=0
+            )
+        ),
+        "recall_3": float(
+            recall_score(
+                target, predictions, labels=[3], average="macro", zero_division=0
+            )
+        ),
     }
 
 
@@ -77,8 +103,25 @@ def train_and_persist_model(
     model_path: Path,
     metadata_path: Path,
     model_params: dict[str, Any] | None = None,
+    model_params_path: Path | None = None,
     random_state: int = 7,
 ) -> TrainingResult:
+    loaded_model_params = (
+        None
+        if model_params is not None or model_params_path is None
+        else load_model_params(model_params_path)
+    )
+    effective_model_params = model_params or loaded_model_params or DEFAULT_MODEL_PARAMS
+    model_params_source = (
+        "argument"
+        if model_params is not None
+        else (
+            str(model_params_path)
+            if loaded_model_params is not None and model_params_path is not None
+            else "default"
+        )
+    )
+
     data = pd.read_csv(data_path)
     features, target = prepare_training_data(data)
 
@@ -93,7 +136,7 @@ def train_and_persist_model(
     evaluation_model = fit_model(
         train_features,
         train_target,
-        model_params=model_params,
+        model_params=effective_model_params,
         random_state=random_state,
     )
     metrics = evaluate_model(evaluation_model, test_features, test_target)
@@ -101,7 +144,7 @@ def train_and_persist_model(
     final_model = fit_model(
         features,
         target,
-        model_params=model_params,
+        model_params=effective_model_params,
         random_state=random_state,
     )
 
@@ -115,14 +158,18 @@ def train_and_persist_model(
         "model_path": str(model_path),
         "random_state": random_state,
         "feature_columns": list(features.columns),
-        "model_params": model_params or DEFAULT_MODEL_PARAMS,
+        "model_params": effective_model_params,
+        "model_params_source": model_params_source,
         "metrics": metrics,
     }
-    metadata_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     return TrainingResult(
         model_path=model_path,
         metadata_path=metadata_path,
         metrics=metrics,
-        model_params=model_params or DEFAULT_MODEL_PARAMS,
+        model_params=effective_model_params,
+        model_params_source=model_params_source,
     )

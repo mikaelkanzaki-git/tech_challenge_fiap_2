@@ -9,6 +9,7 @@ from triage_api.core.logging import get_logger
 from triage_api.repositories.prediction_repository import PostgresPredictionRepository
 from triage_api.repositories.user_repository import PostgresUserRepository
 from triage_api.services.chat_agent_service import TriageChatAgentService
+from triage_api.services.interpretation_service import InterpretationService
 from triage_api.services.model_service import ModelService
 from triage_api.services.openai_client import OpenAIResponseClient
 
@@ -23,21 +24,21 @@ def create_app() -> FastAPI:
     )
     app.state.model_service = ModelService(settings.model_path)
     app.state.prediction_repository = (
-        PostgresPredictionRepository(settings.database_url, model_version=settings.model_version)
+        PostgresPredictionRepository(
+            settings.database_url, model_version=settings.model_version
+        )
         if settings.database_url
         else None
     )
     app.state.user_repository = (
-        PostgresUserRepository(settings.database_url)
-        if settings.database_url
-        else None
+        PostgresUserRepository(settings.database_url) if settings.database_url else None
     )
-    app.state.chat_agent_service = TriageChatAgentService(
-        OpenAIResponseClient(
-            api_key=settings.openai_api_key,
-            model=settings.openai_model,
-        )
+    openai_client = OpenAIResponseClient(
+        api_key=settings.openai_api_key,
+        model=settings.openai_model,
     )
+    app.state.chat_agent_service = TriageChatAgentService(openai_client)
+    app.state.interpretation_service = InterpretationService(openai_client)
     logger.info(
         "Aplicacao iniciada.",
         extra={
@@ -84,7 +85,8 @@ def create_app() -> FastAPI:
         return {
             "status": "ok",
             "model_ready": settings.model_path.exists(),
-            "prediction_persistence_enabled": app.state.prediction_repository is not None,
+            "prediction_persistence_enabled": app.state.prediction_repository
+            is not None,
             "authentication_enabled": app.state.user_repository is not None,
             "chat_agent_enabled": True,
         }

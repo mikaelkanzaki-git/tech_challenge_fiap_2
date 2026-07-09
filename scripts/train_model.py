@@ -51,6 +51,10 @@ def main() -> None:
     print("\nModelo treinado com sucesso.")
     print(f"Modelo salvo em: {result.model_path}")
     print(f"Metadados salvos em: {result.metadata_path}")
+    print(f"Fonte dos hiperparametros: {result.model_params_source}")
+    print("Hiperparametros usados:")
+    for param_name, param_value in result.model_params.items():
+        print(f"- {param_name}: {param_value}")
     print("Metricas de validacao:")
     for metric_name, metric_value in result.metrics.items():
         print(f"- {metric_name}: {metric_value:.4f}")

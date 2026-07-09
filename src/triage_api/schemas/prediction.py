@@ -10,3 +10,4 @@ class PredictionResponse(BaseModel):
     triage_level: int
     triage_label: str
     probabilities: Dict[str, float]
+    interpretation: str | None = None

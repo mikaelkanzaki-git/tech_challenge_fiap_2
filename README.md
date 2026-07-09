@@ -1,122 +1,49 @@
-# Tech Challenge FIAP 2 - Triage API
+# Projeto Triage API
 
-Projeto de triagem hospitalar com modelo de Machine Learning, API FastAPI, autenticação JWT, persistência em PostgreSQL/Supabase e frontend com entrevista guiada por agente conversacional.
+Este repositório evoluiu de experimentos em notebook para um serviço de API menor e mais organizado.
 
-O notebook original continua no projeto como material de consulta, mas a execução principal agora acontece pela API e pelo frontend.
+## O que permanece
+- `algoritmo_genetico.ipynb` segue como notebook de referência
+- o dataset sintético continua sendo a base de treinamento
 
-## Visão Geral
+## O que foi adicionado
+- uma árvore de código em `src/triage_api`
+- um script de treinamento em `scripts/train_model.py`
+- schemas tipados de requisição e resposta
+- uma API de predição com FastAPI
+- testes para a nova camada de serviços
 
-Este projeto permite:
+## Fluxo principal
+1. Execute `algoritmo_genetico.ipynb` para reproduzir a otimização por algoritmo genético
+2. O notebook salva os melhores hiperparâmetros em `models/optimized_params.json`
+3. Treine o modelo Random Forest a partir do CSV do dataset
+4. Salve o artefato do modelo treinado em `models/`
+5. Configure o PostgreSQL quando quiser persistir as requisições
+6. Inicie a API
+7. Faça login no frontend ou solicite um token com `POST /token`
+8. Use a tela de chat ou envie um payload de triagem para `POST /predict/triage`
 
-- Treinar um modelo `RandomForestClassifier` com a base sintética do projeto.
-- Expor uma API para predição de categoria de risco.
-- Autenticar usuários com OAuth2 Bearer e JWT.
-- Persistir predições no PostgreSQL.
-- Usar uma tela de login e uma tela de atendimento conversacional.
-- Opcionalmente usar OpenAI para melhorar a linguagem do agente de triagem.
-- Fazer deploy demonstrável na Vercel usando o plano gratuito.
+## Ordem de execução local
+1. Instale as dependências
+2. Opcionalmente, execute `algoritmo_genetico.ipynb` para gerar `models/optimized_params.json`
+3. Treine o modelo
+4. Inicie a API
 
-## Estrutura
+## Integração do algoritmo genético
+`algoritmo_genetico.ipynb` é o principal artefato técnico dos experimentos com algoritmo genético. Ele define a representação dos genes, seleção, crossover, mutação, função de fitness, três configurações de experimento e a comparação entre o modelo base e o otimizado.
 
-```text
-api/                  Entrypoint usado pela Vercel
-data/                 Base sintética usada no treinamento
-database/ddl/         Scripts SQL para banco, tabela de predições e usuários
-frontend/             Telas HTML, CSS e JavaScript servidas pela API
-models/               Artefatos do modelo usados pela API
-scripts/              Scripts auxiliares, incluindo treinamento do modelo
-src/triage_api/       Código principal da API
-tests/                Testes automatizados
-algoritmo_genetico.ipynb
-                      Notebook de referência do experimento original
-```
-
-## Pré-Requisitos
-
-- Python `3.14.6` ou compatível com as dependências do projeto.
-- PostgreSQL local ou Supabase.
-- Git.
-- PowerShell no Windows.
-- Conta Vercel, caso queira publicar a demo.
-- Chave OpenAI opcional, apenas se quiser respostas mais naturais no chat.
-
-## Configuração Local no Windows
-
-Clone o repositório e entre na pasta do projeto:
-
-```powershell
-git clone https://github.com/mikaelkanzaki-git/tech_challenge_fiap_2.git
-cd tech_challenge_fiap_2
-```
-
-Crie e ative o ambiente virtual:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-Instale as dependências de desenvolvimento:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\pip.exe install -r requirements-dev.txt
-```
-
-Crie o arquivo local de variáveis de ambiente:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Depois edite `.env` com os dados reais do seu ambiente.
-
-Nunca envie `.env` para o Git. O arquivo correto para versionar é apenas `.env.example`.
-
-## Dependências
-
-O projeto separa dependências por finalidade:
-
-- `requirements.txt`: runtime da API, treinamento do modelo e deploy na Vercel.
-- `requirements-dev.txt`: inclui `requirements.txt` mais notebooks, testes e ferramentas de qualidade.
-
-Use `requirements-dev.txt` para desenvolvimento local.
-
-## Variáveis de Ambiente
-
-Exemplo esperado no `.env`:
+A última célula do notebook exporta o indivíduo vencedor para:
 
 ```text
-DATABASE_URL=postgresql://postgres.<PROJECT-REF>:<YOUR-PASSWORD>@aws-0-<REGION>.pooler.supabase.com:5432/postgres
-MODEL_VERSION=local
-JWT_SECRET_KEY=replace-with-a-long-random-secret
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-mini
+models/optimized_params.json
 ```
 
-Descrição:
+`scripts/train_model.py` lê esse arquivo automaticamente e treina o modelo da API com os hiperparâmetros otimizados. Se o arquivo não existir, o fluxo de treino usa os parâmetros padrão definidos em `src/triage_api/ml/training.py`.
 
-- `DATABASE_URL`: conexão PostgreSQL usada para autenticação e persistência das predições.
-- `MODEL_VERSION`: identificação do modelo salvo junto com cada predição.
-- `JWT_SECRET_KEY`: segredo usado para assinar tokens JWT.
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: tempo de validade do token.
-- `OPENAI_API_KEY`: chave opcional para integração com OpenAI.
-- `OPENAI_MODEL`: modelo usado pelo agente quando `OPENAI_API_KEY` estiver configurado.
+## Banco de dados
+O nome do banco PostgreSQL é `tech_challenge_fiap_2`. Use esse nome no final de `DATABASE_URL`.
 
-Para gerar um bom `JWT_SECRET_KEY` no PowerShell:
-
-```powershell
-$bytes = New-Object byte[] 64
-[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
-[Convert]::ToBase64String($bytes)
-```
-
-## Banco de Dados
-
-O banco do projeto é `tech_challenge_fiap_2`.
-
-Scripts disponíveis:
+Os scripts DDL estão em `database/ddl`:
 
 ```text
 database/ddl/000_create_database.sql
@@ -124,95 +51,69 @@ database/ddl/001_create_triage_prediction_requests.sql
 database/ddl/002_create_api_users.sql
 ```
 
-Ordem recomendada:
+Configure a conexão da API com:
 
-1. Execute `000_create_database.sql` conectado a uma base administrativa, como `postgres`.
-2. Conecte no banco `tech_challenge_fiap_2`.
-3. Execute `001_create_triage_prediction_requests.sql`.
-4. Execute `002_create_api_users.sql`.
+```powershell
+.\.venv\Scripts\python.exe scripts\train_model.py
+```
 
-O script `002_create_api_users.sql` cria o usuário inicial:
+Para desenvolvimento local com Supabase e rede IPv4, prefira a string de conexão do Session Pooler:
+
+```text
+DATABASE_URL=postgresql://postgres.<PROJECT-REF>:<PASSWORD>@aws-0-<REGION>.pooler.supabase.com:5432/postgres
+```
+
+Para desenvolvimento local, use `.env.example` como base e crie um arquivo `.env` com a senha real. O arquivo `.env` é ignorado pelo Git e carregado automaticamente quando a API inicia. Reinicie o Uvicorn após alterar o `.env`.
+
+Quando `DATABASE_URL` está configurado, cada `POST /predict/triage` é salvo em `triage_prediction_requests`.
+
+## Frontend e agente de chat
+A API serve um frontend simples a partir da pasta `frontend`:
+
+```text
+http://127.0.0.1:8000/
+```
+
+Telas:
+
+- Tela de login: autentica com `/token`
+- Tela de chat: envia mensagens para `/chat/message`
+
+O agente de chat coleta os campos obrigatórios da triagem um por um:
+
+- age
+- heart_rate
+- systolic_blood_pressure
+- oxygen_saturation
+- body_temperature
+- pain_level
+- chronic_disease_count
+- previous_er_visits
+- arrival_mode
+
+Quando todos os campos estão preenchidos, o backend chama o mesmo serviço de modelo usado por `POST /predict/triage` e devolve a categoria de risco para o usuário.
+
+A integração com OpenAI é obrigatória para interpretar o resultado do modelo. Configure `OPENAI_API_KEY` antes de usar fluxos de predição que retornam o resultado final da triagem. O backend usa a OpenAI Responses API para gerar uma interpretação em apoio clínico a partir da saída do modelo e dos dados do paciente. Se a chave estiver ausente ou a OpenAI não retornar texto, a API responde com `503` em vez de gerar uma interpretação fixa local.
+
+Durante a coleta dos campos, o agente de chat ainda usa parsing determinístico para capturar respostas numéricas e categóricas, mas a explicação final da triagem é sempre produzida pela LLM.
+
+## Autenticação
+Os endpoints protegidos usam autenticação OAuth2 Bearer com um JWT retornado por `/token` ou `/login`.
+
+Crie a tabela de autenticação e o usuário inicial com:
+
+```text
+database/ddl/002_create_api_users.sql
+```
+
+Usuário inicial:
 
 ```text
 username: fiap@tech2.com
 password: fiap@Tech_2
 ```
 
-Observação para Supabase:
-
-- Em projetos Supabase, a connection string pode terminar com `/postgres`.
-- Se estiver usando o banco padrão do Supabase, aplique as tabelas nele.
-- Em redes sem IPv6 funcional, prefira a connection string do Session Pooler.
-
-## Treinar o Modelo
-
-Antes de subir a API pela primeira vez, gere o artefato do modelo:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\train_model.py
-```
-
-Esse comando cria ou atualiza:
-
-```text
-models/triage_model.joblib
-models/triage_model_metadata.json
-```
-
-Para o deploy demonstrável na Vercel, estes dois arquivos são versionados porque são pequenos o suficiente para o projeto atual e evitam treinar o modelo durante o build.
-
-## Subir a Aplicação Localmente
-
-Defina o `PYTHONPATH` para que o layout `src/` seja encontrado:
-
-```powershell
-$env:PYTHONPATH="src"
-```
-
-Inicie a API com Uvicorn:
-
-```powershell
-.\.venv\Scripts\python.exe -m uvicorn triage_api.main:app --reload
-```
-
-Acesse:
-
-```text
-http://127.0.0.1:8000/
-```
-
-Endpoints úteis:
-
-```text
-GET  /health
-POST /token
-POST /login
-POST /chat/message
-POST /predict/triage
-```
-
-## Frontend
-
-A API serve o frontend automaticamente a partir da pasta `frontend/`.
-
-Telas disponíveis:
-
-- Login: `http://127.0.0.1:8000/`
-- Atendimento: redirecionamento após login bem-sucedido
-
-O fluxo recomendado é:
-
-1. Entrar com o usuário de teste.
-2. Responder a entrevista guiada.
-3. Conferir os campos preenchidos no painel lateral.
-4. Obter a categoria de risco ao final da coleta.
-5. Usar `Nova entrevista` para reiniciar o atendimento.
-
-## Autenticação
-
-Os endpoints protegidos exigem token JWT.
-
-Gerar token:
+Gerar um token:
 
 ```bash
 curl --location "http://127.0.0.1:8000/token" \
@@ -221,19 +122,7 @@ curl --location "http://127.0.0.1:8000/token" \
 --data-urlencode "password=fiap@Tech_2"
 ```
 
-Resposta esperada:
-
-```json
-{
-  "access_token": "<ACCESS_TOKEN>",
-  "token_type": "bearer",
-  "expires_in": 3600
-}
-```
-
-## Predição Via API
-
-Exemplo para Postman ou curl:
+Chamar o endpoint protegido de predição:
 
 ```bash
 curl --location "http://127.0.0.1:8000/predict/triage" \
@@ -252,17 +141,7 @@ curl --location "http://127.0.0.1:8000/predict/triage" \
 }'
 ```
 
-Valores aceitos em `arrival_mode`:
-
-```text
-walk_in
-wheelchair
-ambulance
-```
-
-## Chat Via API
-
-O chat recebe a mensagem do usuário e os dados já coletados:
+Chamar o endpoint protegido de chat:
 
 ```bash
 curl --location "http://127.0.0.1:8000/chat/message" \
@@ -335,82 +214,35 @@ Pontos de atenção:
 - Se o bundle crescer muito no futuro, mova o modelo para storage externo ou use uma plataforma dedicada para API Python.
 
 ## Logs
-
-A API imprime logs estruturados no terminal:
+A API escreve logs estruturados no terminal usando este padrão:
 
 ```text
 [date_time] - [triage_api] - [LEVEL] - [step] - [message] - [payload=...] - [server_response=...]
 ```
 
-Passos comuns:
+Etapas importantes da predição:
 
-- `application_started`: aplicação iniciada.
-- `auth_login_received`: tentativa de login recebida.
-- `auth_login_completed`: login realizado.
-- `predict_triage_received`: payload de predição recebido.
-- `predict_triage_completed`: predição calculada.
-- `prediction_repository_insert_started`: início da persistência.
-- `prediction_persistence_completed`: predição salva.
-- `prediction_persistence_failed`: falha ao salvar predição.
-- `chat_message_received`: mensagem do chat recebida.
-- `chat_message_completed`: mensagem do chat processada.
+- `predict_triage_received`: a API recebeu o payload da requisição
+- `predict_triage_completed`: o modelo retornou uma predição
+- `prediction_persistence_skipped`: `DATABASE_URL` não estava configurado
+- `prediction_persistence_completed`: a predição foi salva com sucesso
+- `prediction_persistence_failed`: a API não conseguiu salvar a predição no PostgreSQL
 
-## Testes
-
-Executar todos os testes:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest
-```
-
-Executar testes com cobertura:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest --cov=src/triage_api --cov-report=term-missing
-```
-
-A cobertura mínima configurada é `80%`.
-
-Os notebooks são mantidos no Git para consulta da equipe, mas são ignorados pela cobertura via `pyproject.toml`.
-
-## Problemas Comuns
-
-### `Repositorio de usuarios nao configurado`
-
-Verifique se `DATABASE_URL` está configurado no `.env` e reinicie o Uvicorn.
-
-### Login retorna `401`
-
-Confirme se `database/ddl/002_create_api_users.sql` foi executado e se está usando:
-
-```text
-fiap@tech2.com
-fiap@Tech_2
-```
-
-### Erro ao resolver host do Supabase
-
-Se a connection string direta retornar apenas IPv6 e sua rede não suportar IPv6, use a connection string do Session Pooler do Supabase.
-
-### API não encontra `triage_api`
-
-Defina o `PYTHONPATH` antes de iniciar o Uvicorn:
+## Testes e cobertura
+Executar os testes automatizados:
 
 ```powershell
 $env:PYTHONPATH="src"
 ```
 
-### Modelo não encontrado
-
-Execute novamente:
+Executar os testes com cobertura:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\train_model.py
+.venv\Scripts\python.exe -m pytest --cov=src/triage_api --cov-report=term-missing
 ```
 
-## Convenções do Projeto
+A meta mínima atual de cobertura é `80%`.
 
-- Código, variáveis, rotas, métodos e nomes técnicos usam inglês com `snake_case`.
-- Mensagens exibidas ao usuário ficam em português.
-- `.env` nunca deve ser versionado.
-- Alterações devem entrar por Pull Request para preservar a branch `main`.
+## Observações
+- Os identificadores do código usam inglês e `snake_case`
+- As mensagens exibidas ao usuário estão em português

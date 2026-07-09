@@ -36,6 +36,24 @@ def predict_triage(
             status_code=503,
             detail="O modelo ainda nao foi treinado. Execute o script de treino antes de consultar a API.",
         ) from None
+    try:
+        response = request.app.state.interpretation_service.interpret(payload, response)
+    except Exception as exc:
+        logger.exception(
+            "Nao foi possivel gerar a interpretacao da triagem com LLM.",
+            extra={
+                "step": "predict_triage_interpretation_failed",
+                "payload": payload_data,
+                "server_response": {
+                    "error_type": exc.__class__.__name__,
+                    "error_message": str(exc),
+                },
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Nao foi possivel gerar a interpretacao da triagem com LLM.",
+        ) from None
 
     response_data = response.model_dump()
     logger.info(

@@ -1,0 +1,32 @@
+{
+  "data_path": "data/synthetic_medical_triage.csv",
+  "model_path": "models/triage_model.joblib",
+  "random_state": 7,
+  "feature_columns": [
+    "age",
+    "heart_rate",
+    "systolic_blood_pressure",
+    "oxygen_saturation",
+    "body_temperature",
+    "pain_level",
+    "chronic_disease_count",
+    "previous_er_visits",
+    "arrival_mode_label_encoding"
+  ],
+  "model_params": {
+    "n_estimators": 20,
+    "max_depth": 10,
+    "min_samples_split": 2,
+    "min_samples_leaf": 1,
+    "criterion": "entropy",
+    "class_weight": "balanced",
+    "max_features": "sqrt",
+    "bootstrap": true
+  },
+  "metrics": {
+    "accuracy": 0.9230555555555555,
+    "macro_f1": 0.9053789235260336,
+    "recall_2": 0.9092592592592592,
+    "recall_3": 0.9325842696629213
+  }
+}

@@ -149,7 +149,7 @@ def test_predict_triage_returns_service_unavailable_when_model_is_missing(
     response = client.post("/predict/triage", json=valid_payload)
 
     assert response.status_code == 503
-    assert response.json()["detail"].startswith("O modelo ainda nao foi treinado")
+    assert response.json()["detail"].startswith("O modelo ainda não foi treinado")
 
 
 def test_predict_triage_returns_service_unavailable_when_repository_fails(
@@ -164,7 +164,7 @@ def test_predict_triage_returns_service_unavailable_when_repository_fails(
     response = client.post("/predict/triage", json=valid_payload)
 
     assert response.status_code == 503
-    assert response.json()["detail"] == "Nao foi possivel registrar a predicao no banco de dados."
+    assert response.json()["detail"] == "Não foi possível registrar a predição no banco de dados."
 
 
 def test_predict_triage_requires_bearer_token(valid_payload: dict[str, object]) -> None:
@@ -215,7 +215,7 @@ def test_predict_triage_returns_unavailable_when_user_repository_is_missing(
     )
 
     assert response.status_code == 503
-    assert response.json()["detail"] == "Repositorio de usuarios nao configurado."
+    assert response.json()["detail"] == "Repositório de usuários não configurado."
 
 
 def test_predict_triage_rejects_inactive_user(
@@ -273,7 +273,7 @@ def test_token_returns_unprocessable_when_password_is_missing() -> None:
     response = client.post("/token", data={"username": "fiap@tech2.com"})
 
     assert response.status_code == 422
-    assert response.json()["detail"] == "Informe usuario e senha para autenticacao."
+    assert response.json()["detail"] == "Informe usuário e senha para autenticação."
 
 
 def test_predict_triage_accepts_valid_bearer_token(
@@ -312,7 +312,7 @@ def test_login_returns_unauthorized_when_password_is_invalid(valid_user: UserRec
     )
 
     assert response.status_code == 401
-    assert response.json()["detail"] == "Usuario ou senha invalidos."
+    assert response.json()["detail"] == "Usuário ou senha inválidos."
 
 
 def test_token_returns_service_unavailable_when_user_repository_is_missing() -> None:
@@ -326,7 +326,7 @@ def test_token_returns_service_unavailable_when_user_repository_is_missing() -> 
     )
 
     assert response.status_code == 503
-    assert response.json()["detail"] == "Repositorio de usuarios nao configurado."
+    assert response.json()["detail"] == "Repositório de usuários não configurado."
 
 
 def test_chat_message_requires_bearer_token() -> None:

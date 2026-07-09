@@ -1,6 +1,6 @@
 {
-  "data_path": "data/synthetic_medical_triage.csv",
-  "model_path": "models/triage_model.joblib",
+  "data_path": "C:\\Users\\mikae\\OneDrive\\Documentos\\FIAP\\tech_challenge_fiap_2\\data\\synthetic_medical_triage.csv",
+  "model_path": "C:\\Users\\mikae\\OneDrive\\Documentos\\FIAP\\tech_challenge_fiap_2\\models\\triage_model.joblib",
   "random_state": 7,
   "feature_columns": [
     "age",

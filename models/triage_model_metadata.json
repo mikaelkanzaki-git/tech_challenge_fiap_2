@@ -23,6 +23,7 @@
     "max_features": "sqrt",
     "bootstrap": true
   },
+  "model_params_source": "default",
   "metrics": {
     "accuracy": 0.9230555555555555,
     "macro_f1": 0.9053789235260336,

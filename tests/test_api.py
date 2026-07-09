@@ -186,7 +186,7 @@ def test_predict_triage_returns_service_unavailable_when_repository_fails(
     assert response.status_code == 503
     assert (
         response.json()["detail"]
-        == "Nao foi possivel registrar a predicao no banco de dados."
+        == "Não foi possível registrar a predição no banco de dados."
     )
 
 
@@ -203,11 +203,7 @@ def test_predict_triage_returns_service_unavailable_when_interpretation_fails(
     response = client.post("/predict/triage", json=valid_payload)
 
     assert response.status_code == 503
-    assert response.json()["detail"] == "Não foi possível registrar a predição no banco de dados."
-    assert (
-        response.json()["detail"]
-        == "Nao foi possivel gerar a interpretacao da triagem com LLM."
-    )
+    assert response.json()["detail"] == "Nao foi possivel gerar a interpretacao da triagem com LLM."
 
 
 def test_predict_triage_requires_bearer_token(valid_payload: dict[str, object]) -> None:

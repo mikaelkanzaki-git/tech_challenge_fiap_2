@@ -28,7 +28,7 @@ def get_current_user(request: Request, token: str = Depends(oauth2_scheme)) -> A
     if user_repository is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Repositorio de usuarios nao configurado.",
+            detail="Repositório de usuários não configurado.",
         )
 
     user = user_repository.get_user_by_email(email)

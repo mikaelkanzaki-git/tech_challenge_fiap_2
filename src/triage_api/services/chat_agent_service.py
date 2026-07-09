@@ -88,7 +88,7 @@ FIELD_PROMPTS = [
     FieldPrompt(
         "arrival_mode",
         "modo de chegada",
-        "Como o paciente chegou: andando, cadeira de rodas ou ambulancia?",
+        "Como o paciente chegou: andando, cadeira de rodas ou ambulância?",
         "Informe o modo de chegada: andando, cadeira de rodas ou ambulancia.",
     ),
 ]
@@ -123,7 +123,7 @@ TRIAGE_LABELS = {
     0: "risco baixo",
     1: "risco moderado",
     2: "risco alto",
-    3: "risco critico",
+    3: "risco crítico",
 }
 
 
@@ -222,7 +222,7 @@ class TriageChatAgentService:
                 f"Mensagem do usuário: {user_message}\n"
                 f"Dados coletados: {patient_data}\n"
                 f"Campos faltantes: {missing_fields}\n"
-                f"Proxima pergunta obrigatoria: {base_message}"
+                f"Proxima pergunta obrigatória: {base_message}"
             ),
         )
         return openai_message or base_message

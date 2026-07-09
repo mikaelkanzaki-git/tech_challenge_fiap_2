@@ -38,7 +38,7 @@ def create_chat_message(
         )
     except Exception as exc:
         logger.exception(
-            "Nao foi possivel processar a conversa de triagem.",
+            "Não foi possível processar a conversa de triagem.",
             extra={
                 "step": "chat_message_failed",
                 "payload": {"authenticated_user": current_user.email},
@@ -50,7 +50,7 @@ def create_chat_message(
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Nao foi possivel processar a conversa de triagem.",
+            detail="Não foi possível processar a conversa de triagem.",
         ) from None
 
     logger.info(

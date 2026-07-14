@@ -1,5 +1,6 @@
 # Projeto Triage API
 
+
 Este repositório evoluiu de experimentos em notebook para um serviço de API menor e mais organizado.
 
 ## O que permanece
